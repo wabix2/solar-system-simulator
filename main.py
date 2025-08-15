@@ -2,16 +2,32 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="3D Solar System Simulator", layout="wide")
-st.title("🌞 Advanced 3D Solar System Simulator")
+# ---------------------
+# Page setup
+# ---------------------
+st.set_page_config(
+    page_title="3D Solar System Simulator",
+    layout="wide",
+    page_icon="🌞"
+)
+
+st.title("🌞 3D Interactive Solar System Simulator")
 
 # ---------------------
-# User controls
+# Sidebar controls
 # ---------------------
 st.sidebar.header("Simulation Controls")
 speed = st.sidebar.slider("Simulation Speed", min_value=0.01, max_value=0.1, value=0.02, step=0.01)
 show_trails = st.sidebar.checkbox("Show Planet Trails", value=True)
 planet_size_multiplier = st.sidebar.slider("Planet Size Multiplier", min_value=0.5, max_value=3.0, value=1.0, step=0.1)
+
+st.sidebar.markdown("""
+**Instructions:**
+- Use the Play button to start the simulation.
+- Adjust speed to make planets move faster or slower.
+- Check "Show Planet Trails" to see orbital paths.
+- Rotate, zoom, and pan the 3D view with your mouse.
+""")
 
 # ---------------------
 # Planet data: [semi-major axis, semi-minor axis, base size, color]
@@ -30,7 +46,23 @@ planets = {
 num_frames = 300
 
 # ---------------------
-# Precompute positions
+# Add stars background
+# ---------------------
+num_stars = 500
+stars_x = np.random.uniform(-5, 5, num_stars)
+stars_y = np.random.uniform(-5, 5, num_stars)
+stars_z = np.random.uniform(-5, 5, num_stars)
+
+stars = go.Scatter3d(
+    x=stars_x, y=stars_y, z=stars_z,
+    mode='markers',
+    marker=dict(size=2, color='white'),
+    name='Stars',
+    showlegend=False
+)
+
+# ---------------------
+# Precompute planet positions
 # ---------------------
 planet_positions = {}
 for planet, data in planets.items():
@@ -45,7 +77,7 @@ for planet, data in planets.items():
 # ---------------------
 frames = []
 for i in range(num_frames):
-    data = []
+    data = [stars]  # stars always visible
     # Sun
     sun = go.Scatter3d(
         x=[0], y=[0], z=[0],
@@ -77,17 +109,19 @@ for i in range(num_frames):
 initial_data = frames[0].data
 
 # ---------------------
-# Layout with buttons
+# Layout with Play/Pause buttons
 # ---------------------
 fig = go.Figure(
     data=initial_data,
     layout=go.Layout(
         scene=dict(
-            xaxis=dict(showbackground=False),
-            yaxis=dict(showbackground=False),
-            zaxis=dict(showbackground=False),
+            xaxis=dict(showbackground=False, visible=False),
+            yaxis=dict(showbackground=False, visible=False),
+            zaxis=dict(showbackground=False, visible=False),
             aspectmode='data'
         ),
+        paper_bgcolor='black',
+        plot_bgcolor='black',
         updatemenus=[dict(
             type='buttons',
             showactive=False,
